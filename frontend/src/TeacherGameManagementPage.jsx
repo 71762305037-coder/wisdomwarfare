@@ -1037,9 +1037,7 @@ function TeacherGameCard({
               </button>
 
               <button
-                onClick={() =>
-                  onSendLink && onSendLink(teacherGame?.game_code)
-                }
+                onClick={() => onSendLink && onSendLink()}
                 disabled={!hasGameCode || sendingLink}
                 className="px-3 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-md text-white font-semibold disabled:bg-cyan-800 disabled:cursor-not-allowed"
               >
@@ -1090,9 +1088,9 @@ function TeacherGameManagementPage() {
 
   const [teacherGames, setTeacherGames] = useState([]);
   const [currentTeacher, setCurrentTeacher] = useState(null);
-  const [generating, setGenerating] = useState(false);
-  const [sendingLink, setSendingLink] = useState(false);
-  const [starting, setStarting] = useState(false);
+  const [generatingGameName, setGeneratingGameName] = useState(null); // Track which game is generating
+  const [sendingLinkGameName, setSendingLinkGameName] = useState(null); // Track which game is sending link
+  const [startingGameName, setStartingGameName] = useState(null); // Track which game is starting
   const [generatedGame, setGeneratedGame] = useState(null);
   const [topPlayersLoading, setTopPlayersLoading] = useState(false);
 
@@ -1430,14 +1428,14 @@ function TeacherGameManagementPage() {
     }
   };
 
-  const sendLinkToStudents = async (gameCode) => {
+  const sendLinkToStudents = async (gameName, gameCode) => {
     if (!gameCode) {
       alert("No game code available to send.");
       return;
     }
 
     try {
-      setSendingLink(true);
+      setSendingLinkGameName(gameName); // Only set for this game
 
       let lookupRes = await fetch(
         `${API_BASE}/game/code/${encodeURIComponent(gameCode)}`
@@ -1508,13 +1506,13 @@ function TeacherGameManagementPage() {
       console.error("Error sending link:", error);
       alert("❌ Failed to send link: " + (error.message || error));
     } finally {
-      setSendingLink(false);
+      setSendingLinkGameName(null); // Clear only when this game finishes
     }
   };
 
   const handleGenerateCode = async (selectedGameName) => {
     try {
-      setGenerating(true);
+      setGeneratingGameName(selectedGameName); // Only set for this game
 
       const teacher = currentTeacher || await fetchCurrentTeacher();
       const teacher_id = teacher?.teacher_id ?? teacher?.user_id ?? teacher?.id ?? 1;
@@ -1578,7 +1576,7 @@ function TeacherGameManagementPage() {
       console.error("Generate code error:", error);
       alert("❌ Failed to generate game code: " + error.message);
     } finally {
-      setGenerating(false);
+      setGeneratingGameName(null); // Clear only when this game finishes
     }
   };
 
@@ -1589,7 +1587,7 @@ function TeacherGameManagementPage() {
     }
 
     try {
-      setStarting(true);
+      setStartingGameName(gameName); // Only set for this game
 
       if (gameName === "A. Crossword") {
         console.log("🎮 Starting Crossword game...");
@@ -1602,7 +1600,7 @@ function TeacherGameManagementPage() {
 
         if (crosswordQuestions.length === 0) {
           alert("❌ Add crossword questions before starting the game");
-          setStarting(false);
+          setStartingGameName(null);
           return;
         }
 
@@ -1645,7 +1643,7 @@ function TeacherGameManagementPage() {
       console.error(`Failed to start ${gameName}:`, e);
       alert(`❌ Failed to start ${gameName}: ${e.message}`);
     } finally {
-      setStarting(false);
+      setStartingGameName(null); // Clear only when this game finishes
     }
   };
 
@@ -1803,11 +1801,11 @@ function TeacherGameManagementPage() {
               onDownloadResult={() => handleDownloadResult(game.name)}
               teacherGame={specificGame}
               onGenerateCode={() => handleGenerateCode(game.name)}
-              onSendLink={sendLinkToStudents}
+              onSendLink={() => sendLinkToStudents(game.name, specificGame?.game_code)}
               onStartGame={() => startGameSession(game.name, specificGame?.game_code)}
-              generating={generating}
-              sendingLink={sendingLink}
-              starting={starting}
+              generating={generatingGameName === game.name}
+              sendingLink={sendingLinkGameName === game.name}
+              starting={startingGameName === game.name}
             />
           );
         })}
