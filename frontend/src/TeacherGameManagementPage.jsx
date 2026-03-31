@@ -50,7 +50,6 @@ function TopPlayersModal({ players, onClose }) {
                 <th className="p-3 text-left">Student</th>
                 <th className="p-3 text-left">Email</th>
                 <th className="p-3 text-right">Score</th>
-                <th className="p-3 text-right">Accuracy</th>
               </tr>
             </thead>
             <tbody>
@@ -71,9 +70,6 @@ function TopPlayersModal({ players, onClose }) {
                   <td className="p-3 text-gray-300">{player.email}</td>
                   <td className="p-3 text-right font-bold text-rose-300">
                     {formatScore(player.total_score ?? player.score ?? 0)}
-                  </td>
-                  <td className="p-3 text-right text-green-400 font-bold">
-                    {formatAccuracy(player.accuracy || 0)}%
                   </td>
                 </tr>
               ))}
