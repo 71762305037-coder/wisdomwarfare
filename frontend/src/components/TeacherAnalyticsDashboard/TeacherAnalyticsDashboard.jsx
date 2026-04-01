@@ -93,12 +93,13 @@ const [autoRefresh, setAutoRefresh] = useState(false);
 
   const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'];
 
-  // Bracket-specific colors for pie chart
+  // Bracket-specific colors for pie chart - bright and vibrant colors
   const BRACKET_COLORS = {
-    '80+%': '#10B981',      // Emerald Green
-    '50-75%': '#F59E0B',    // Amber Gold
-    '30-50%': '#EF4444',    // Red
-    '<30%': '#8B5CF6'       // Purple
+    '<30%': '#FF4444',      // Bright Red
+    '30-50%': '#FF8C00',    // Bright Orange
+    '50-70%': '#FFD700',    // Bright Gold
+    '70-90%': '#00DD00',    // Bright Green
+    '90%+': '#00DDFF'       // Bright Cyan
   };
 
   // ✅ AUTO-REFRESH EVERY 30 SECONDS
@@ -479,9 +480,10 @@ const [autoRefresh, setAutoRefresh] = useState(false);
         ? [...new Set(studentAnswers.map(a => a.game_session_id))].length 
         : 0;
       
-      // Only calculate accuracy if games have been played
-      const accuracy = gamesPlayed > 0 
-        ? parseFloat(s.accuracy || s.combinedAccuracy || perf.accuracy || 0)
+      // Calculate accuracy based on latest session answers only
+      const correctAnswers = studentAnswers.filter(a => a.is_correct).length;
+      const accuracy = studentAnswers.length > 0 
+        ? (correctAnswers / studentAnswers.length) * 100
         : 0;
       
       return {
@@ -493,7 +495,7 @@ const [autoRefresh, setAutoRefresh] = useState(false);
         accuracy: accuracy,
         gamesPlayed: gamesPlayed,
         attempted: studentAnswers.length || s.totalGames || s.attempted || perf.attempts || 0,
-        correct: studentAnswers.filter(a => a.is_correct).length || s.correct || perf.correct_answers || 0,
+        correct: correctAnswers || s.correct || perf.correct_answers || 0,
         wrong: studentAnswers.filter(a => !a.is_correct).length || 0,
         // New game-specific fields (from game-breakdown endpoint)
         wisdomScore: parseInt(s.wisdomScore) || 0,
@@ -887,28 +889,20 @@ const openQuestionModal = useCallback(async (question) => {
     
     // Filter students based on their accuracy in the selected bracket
     const students = performanceData.studentPerformance.filter(student => {
-      // For <30% bracket, include students with 0 games played
-      if (bracket.name === '<30%') {
-        if (student.gamesPlayed === 0) {
-          return true; // Include students who haven't played
-        }
-      }
-      
-      // For other brackets, exclude students with no games played
-      if (student.gamesPlayed === 0) {
-        return false;
-      }
-      
       const accuracy = parseFloat(student.accuracy) || 0;
+      const gamesPlayed = student.gamesPlayed || 0;
       
-      if (bracket.name === '80+%') {
-        return accuracy >= 80;
-      } else if (bracket.name === '50-75%') {
-        return accuracy >= 50 && accuracy < 80;
+      if (bracket.name === '<30%') {
+        // Include students with 0% accuracy or 0 games played
+        return accuracy < 30 || gamesPlayed === 0;
       } else if (bracket.name === '30-50%') {
         return accuracy >= 30 && accuracy < 50;
-      } else if (bracket.name === '<30%') {
-        return accuracy < 30;
+      } else if (bracket.name === '50-70%') {
+        return accuracy >= 50 && accuracy < 70;
+      } else if (bracket.name === '70-90%') {
+        return accuracy >= 70 && accuracy < 90;
+      } else if (bracket.name === '90%+') {
+        return accuracy >= 90;
       }
       return false;
     });
@@ -936,7 +930,7 @@ const openQuestionModal = useCallback(async (question) => {
       return [];
     }
 
-    // Accuracy distribution
+    // Accuracy distribution - include all students (even those with 0 games played)
     const ranges = [
       { name: '<30%', min: 0, max: 30, value: 0, totalGamesPlayed: 0, avgGamesPlayed: 0 },
       { name: '30-50%', min: 30, max: 50, value: 0, totalGamesPlayed: 0, avgGamesPlayed: 0 },
@@ -946,20 +940,21 @@ const openQuestionModal = useCallback(async (question) => {
     ];
 
     students.forEach(student => {
-      const accuracy = parseFloat(student.accuracy) || 0;
       const gamesPlayed = student.gamesPlayed || 0;
+      const accuracy = parseFloat(student.accuracy) || 0;
       
+      // Students with 0 games played go to <30% bracket
       let rangeIndex = -1;
-      if (accuracy < 30) {
-        rangeIndex = 0;
-      } else if (accuracy < 50) {
-        rangeIndex = 1;
-      } else if (accuracy < 70) {
-        rangeIndex = 2;
-      } else if (accuracy < 90) {
-        rangeIndex = 3;
-      } else {
-        rangeIndex = 4;
+      if (accuracy === 0 || gamesPlayed === 0) {
+        rangeIndex = 0;  // '<30%' for students who haven't played
+      } else if (accuracy >= 30 && accuracy < 50) {
+        rangeIndex = 1;  // '30-50%'
+      } else if (accuracy >= 50 && accuracy < 70) {
+        rangeIndex = 2;  // '50-70%'
+      } else if (accuracy >= 70 && accuracy < 90) {
+        rangeIndex = 3;  // '70-90%'
+      } else if (accuracy >= 90) {
+        rangeIndex = 4;  // '90%+'
       }
       
       if (rangeIndex >= 0) {
@@ -1128,7 +1123,7 @@ const openQuestionModal = useCallback(async (question) => {
                     cx="50%"
                     cy="50%"
                     labelLine={true}
-                    label={({ name, value, percent }) => `${name} ${value} (${(percent * 100).toFixed(1)}%)`}
+                    label={({ payload, percent }) => payload ? `${payload.name} ${payload.value} (${(percent * 100).toFixed(1)}%)` : ''}
                     outerRadius={80}
                     fill="#0088FE"
                     dataKey="value"
@@ -1799,7 +1794,6 @@ const openQuestionModal = useCallback(async (question) => {
                     <th className="p-3 text-left">Student Name</th>
                     <th className="p-3 text-center">Email</th>
                     <th className="p-3 text-right">Accuracy</th>
-                    <th className="p-3 text-right">Games Played</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1819,12 +1813,11 @@ const openQuestionModal = useCallback(async (question) => {
                               {parseFloat(student.accuracy).toFixed(1)}%
                             </span>
                           </td>
-                          <td className="p-3 text-right text-cyan-400">{student.gamesPlayed || 0}</td>
                         </tr>
                       ))
                   ) : (
                     <tr>
-                      <td colSpan="4" className="p-4 text-center text-gray-400">
+                      <td colSpan="3" className="p-4 text-center text-gray-400">
                         No students in this performance bracket
                       </td>
                     </tr>
