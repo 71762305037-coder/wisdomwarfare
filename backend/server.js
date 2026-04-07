@@ -2379,23 +2379,26 @@ app.post("/admin/cleanup-users", async (req, res) => {
 
       if (toRemove.length === 0) continue;
 
+      // Build placeholders for IN clause
+      const placeholders = toRemove.map(() => '?').join(',');
+
       // Reassign performance / answers / scores to the kept user_id if needed.
       await connection.query(
-        "UPDATE answers SET user_id = ? WHERE user_id IN (?)",
-        [keepId, toRemove]
+        `UPDATE answers SET user_id = ? WHERE user_id IN (${placeholders})`,
+        [keepId, ...toRemove]
       );
       await connection.query(
-        "UPDATE scores SET user_id = ? WHERE user_id IN (?)",
-        [keepId, toRemove]
+        `UPDATE scores SET user_id = ? WHERE user_id IN (${placeholders})`,
+        [keepId, ...toRemove]
       );
       await connection.query(
-        "UPDATE performance SET user_id = ? WHERE user_id IN (?)",
-        [keepId, toRemove]
+        `UPDATE performance SET user_id = ? WHERE user_id IN (${placeholders})`,
+        [keepId, ...toRemove]
       );
 
       // Delete duplicate rows
-      await connection.query("DELETE FROM users WHERE user_id IN (?)", [
-        toRemove,
+      await connection.query(`DELETE FROM users WHERE user_id IN (${placeholders})`, [
+        ...toRemove,
       ]);
 
       affected += toRemove.length;

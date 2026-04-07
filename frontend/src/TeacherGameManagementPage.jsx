@@ -1725,21 +1725,21 @@ function TeacherGameManagementPage() {
         <button
           onClick={reloadQuestions}
           disabled={loading}
-          className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-500 font-bold transition-colors disabled:bg-blue-800"
+          className="hidden px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-500 font-bold transition-colors disabled:bg-blue-800"
         >
           🔄 Reload Questions
         </button>
         <button
           onClick={resetDuplicatePlays}
           disabled={loading}
-          className="px-6 py-3 rounded-lg bg-purple-600 text-white hover:bg-purple-500 font-bold transition-colors disabled:bg-purple-800"
+          className="hidden px-6 py-3 rounded-lg bg-purple-600 text-white hover:bg-purple-500 font-bold transition-colors disabled:bg-purple-800"
         >
           🔄 Reset Duplicate Plays
         </button>
         <button
           onClick={cleanupDuplicateUsers}
           disabled={loading}
-          className="px-6 py-3 rounded-lg bg-orange-600 text-white hover:bg-orange-500 font-bold transition-colors disabled:bg-orange-800"
+          className="hidden px-6 py-3 rounded-lg bg-orange-600 text-white hover:bg-orange-500 font-bold transition-colors disabled:bg-orange-800"
         >
           🔧 Cleanup Users
         </button>
