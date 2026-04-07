@@ -1451,12 +1451,20 @@ const CrosswordGame = ({ user, gameCode, gameName, onLogout }) => {
                   return (
                     <div
                       key={clueId}
-                      className={`p-3 rounded-lg transition-colors ${
+                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
                         isCompleted ? 'bg-green-800' :
                         isLockedByMe ? 'bg-cyan-800' :
                         isLocked ? 'bg-red-800' :
-                        'bg-gray-700'
+                        'bg-gray-700 hover:bg-gray-600'
                       }`}
+                      onClick={() => {
+                        if (!isCompleted) {
+                          setActiveDirection('across');
+                          setActiveClueId(getClueId(clue));
+                          lockWord(clueId, 'across');
+                          focusCell(clue.startRow, clue.startCol);
+                        }
+                      }}
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -1507,12 +1515,20 @@ const CrosswordGame = ({ user, gameCode, gameName, onLogout }) => {
                   return (
                     <div
                       key={clueId}
-                      className={`p-3 rounded-lg transition-colors ${
+                      className={`p-3 rounded-lg cursor-pointer transition-colors ${
                         isCompleted ? 'bg-green-800' :
                         isLockedByMe ? 'bg-cyan-800' :
                         isLocked ? 'bg-red-800' :
-                        'bg-gray-700'
+                        'bg-gray-700 hover:bg-gray-600'
                       }`}
+                      onClick={() => {
+                        if (!isCompleted) {
+                          setActiveDirection('down');
+                          setActiveClueId(getClueId(clue));
+                          lockWord(clueId, 'down');
+                          focusCell(clue.startRow, clue.startCol);
+                        }
+                      }}
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
