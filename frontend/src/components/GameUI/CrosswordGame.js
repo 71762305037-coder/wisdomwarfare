@@ -1461,7 +1461,6 @@ const CrosswordGame = ({ user, gameCode, gameName, onLogout }) => {
                         if (!isCompleted) {
                           setActiveDirection('across');
                           setActiveClueId(getClueId(clue));
-                          lockWord(clueId, 'across');
                           focusCell(clue.startRow, clue.startCol);
                         }
                       }}
@@ -1525,7 +1524,6 @@ const CrosswordGame = ({ user, gameCode, gameName, onLogout }) => {
                         if (!isCompleted) {
                           setActiveDirection('down');
                           setActiveClueId(getClueId(clue));
-                          lockWord(clueId, 'down');
                           focusCell(clue.startRow, clue.startCol);
                         }
                       }}
