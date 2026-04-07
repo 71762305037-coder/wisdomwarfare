@@ -138,7 +138,7 @@ function UploadStudentsSection() {
   return (
     <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-white w-full max-w-2xl mx-auto border-2 border-cyan-600">
       <h3 className="text-xl font-semibold mb-4 text-center text-cyan-300">
-        👩‍🎓 Upload Students via CSV
+        👩‍🎓 Upload Students Details
       </h3>
       <div className="flex flex-col items-center space-y-4">
         <input
@@ -152,7 +152,7 @@ function UploadStudentsSection() {
           disabled={uploading || !studentFile}
           className="bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-800 text-white font-semibold px-5 py-2 rounded-lg shadow-md transition-all duration-200"
         >
-          {uploading ? "📤 Uploading..." : "📂 Upload Students"}
+          {uploading ? "📤 Uploading..." : "📂 Upload CSV"}
         </button>
         <p className="text-sm text-gray-400 text-center">
           CSV should have columns: email, display_name, role
